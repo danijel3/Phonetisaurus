@@ -39,6 +39,7 @@
 #include <mach/mach.h>
 #endif
 using namespace fst;
+using namespace std;
 
 typedef struct LabelDatum {int max, tot, lhs, rhs; bool lhsE, rhsE;} LabelDatum;
 typedef unordered_map<LogArc::Label, LabelDatum> LabelData;
