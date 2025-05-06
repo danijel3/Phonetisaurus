@@ -1,26 +1,27 @@
 ## Phonetisaurus G2P ##
-[![Build Status](https://travis-ci.org/AdolfVonKleist/Phonetisaurus.svg?branch=master)](https://travis-ci.org/AdolfVonKleist/Phonetisaurus)
+
+### Note on this fork
+
+The original project hasn't been updated in a while, so this fork was created. The main motivation for
+this fork is to keep it synchronized with the latest versions of OpenFST as they are being updated
+in Kaldi. Another reason is to make it compile-able in modern versions of GCC. This for was created
+in late 2024 and is being updated ever since.
+
+### Original Description
 
 This repository contains scripts suitable for training, evaluating and using grapheme-to-phoneme
 models for speech recognition using the OpenFst framework.  The current build requires OpenFst
-version 1.6.0 or later, and the examples below use version 1.7.2.
+version 1.6.0 or later, and the examples below use version 1.8.4.
 
 The repository includes C++ binaries suitable for training, compiling, and evaluating G2P models.
 It also some simple python bindings which may be used to extract individual
 multigram scores, alignments, and to dump the raw lattices in .fst format for each word.
 
-The python scripts and bindings were tested most recently with python v3.8.5.
+The python scripts and bindings were tested most recently with python v3.13.
 
-Standalone distributions related to previous INTERSPEECH papers, as well as the complete, exported
-final version of the old google-code repository are available via ```git-lfs``` in a separate
-repository:
-  * https://github.com/AdolfVonKleist/phonetisaurus-downloads
+#### Scratch Build for OpenFst v1.8.4 ####
 
-#### Contact: ####
-  * phonetisaurus@gmail.com
-
-#### Scratch Build for OpenFst v1.7.2 and Ubuntu 20.04 ####
-This build was tested via AWS EC2 with a fresh Ubuntu 20.04 base, and m4.large instance.
+This build was tested in Docker using the Dockerfile included with the project.
 
 ```
 $ sudo apt-get update
@@ -38,33 +39,29 @@ $ mkdir g2p
 $ cd g2p/
 ```
 
-Next grab and install OpenFst-1.7.2:
+Next grab and install OpenFst-1.8.4:
 ```
-$ wget http://www.openfst.org/twiki/pub/FST/FstDownload/openfst-1.7.2.tar.gz
-$ tar -xvzf openfst-1.7.2.tar.gz
-$ cd openfst-1.7.2
+$ wget http://www.openfst.org/twiki/pub/FST/FstDownload/openfst-1.8.4.tar.gz
+$ tar -xvzf openfst-1.8.4.tar.gz
+$ cd openfst-1.8.4
 # Minimal configure, compatible with current defaults for Kaldi
 $ ./configure --enable-static --enable-shared --enable-far --enable-ngram-fsts
 $ make -j 
 # Now wait a while...
 $ sudo make install
-# Extend your LD_LIBRARY_PATH .bashrc (assumes OpenFst installed to default location):
-$ echo 'export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib:/usr/local/lib/fst' \
-     >> ~/.bashrc
-$ source ~/.bashrc
 $ cd ..
 ```
 
 Checkout the latest Phonetisaurus from master and compile without bindings:
 ```
-$ git clone https://github.com/AdolfVonKleist/Phonetisaurus.git
+$ git clone https://github.com/danijel3/Phonetisaurus.git
 $ cd Phonetisaurus
 # if OpenFst is installed in the default location:
 $ ./configure
 # if OpenFst is installed in a special location:
 $ ./configure \
-      --with-openfst-includes=${OFST_PATH}/openfst-1.7.2/include \
-      --with-openfst-libs=${OFST_PATH}/openfst-1.7.2/lib
+      --with-openfst-includes=${OFST_PATH}/openfst-1.8.4/include \
+      --with-openfst-libs=${OFST_PATH}/openfst-1.8.4/lib
 $ make
 $ sudo make install
 $ cd ..
@@ -72,15 +69,15 @@ $ cd ..
 
 Checkout the latest Phonetisaurus from master and compile with python3 bindings:
 ```
-$ git clone https://github.com/AdolfVonKleist/Phonetisaurus.git
+$ git clone https://github.com/danijel3/Phonetisaurus.git
 $ cd Phonetisaurus
-$ sudo pip3 install pybindgen
+$ sudo pip3 install pybindgen setuptools
 # if OpenFst is installed in the default location:
 $ PYTHON=python3 ./configure --enable-python
 # if OpenFst is installed in a special location:
 $ PYTHON=python3 ./configure \
-      --with-openfst-includes=${OFST_PATH}/openfst-1.7.2/include \
-      --with-openfst-libs=${OFST_PATH}/openfst-1.7.2/lib \
+      --with-openfst-includes=${OFST_PATH}/openfst-1.8.4/include \
+      --with-openfst-libs=${OFST_PATH}/openfst-1.8.4/lib \
       --enable-python
 $ make
 $ sudo make install
@@ -228,22 +225,6 @@ junkify JH AH1 NG K AH0 F AY2
 junkify JH AH1 NG K IH0 F AY2
 ```
 
-Use a special location for OpenFst, parallel build with 2 cores
-```
- $ ./configure --with-openfst-libs=/home/ubuntu/openfst-1.6.2/lib \
-          --with-openfst-includes=/home/ubuntu/openfst-1.6.2/include
- $ make -j 2 all
-```
-
-Use custom g++ under OSX (Note: OpenFst must also be compiled with this
-custom g++ alternative [untested with v1.6.2])
-```
- $ ./configure --with-openfst-libs=/home/osx/openfst-1.6.2gcc/lib \
-          --with-openfst-includes=/home/osx/openfst-1.6.2gcc/include \
-          CXX=g++-4.9
- $ make -j 2 all
-```
-
 #### Rebuild configure ####
 If you need to rebuild the configure script you can do so:
 ```
@@ -280,7 +261,7 @@ If you need to rebuild the configure script you can do so:
 
 ### Docker: ###
 
-Docker images are hosted on: https://hub.docker.com/r/phonetisaurus/phonetisaurus
+You can build a docker image using the command `docker build -t phonetisaurus .`.
 
 The images can be used in one of 3 ways:
 
@@ -288,17 +269,10 @@ The images can be used in one of 3 ways:
   * as a base image for another project (using the `FROM` statement)
   * to copy portions of the binaries or libraries into a new image (using the `COPY --from=` statement) - most of the files are in `/usr/local/bin` and `/usr/local/lib`
 
-To use the program directly, you need to mount the local folder with the required files (eg. models, word lists, etc) into the Docker container under the `/work` path, as this is the default workdir in the image. Then you can call the programs directly after the name of the image, for example:
+To use the program directly, you need to mount a local folder with the required files (eg. models, word lists, etc) into the Docker container under the `/work` path, as this is the default workdir in the image. Then you can call the programs directly after the name of the image, for example:
 ```
-docker run --rm -it -v $PWD:/work phonetisaurus/phonetisaurus "phonetisaurus-apply -m model.fst -wl test.wlist"
+docker run --rm -it -v $PWD:/work phonetisaurus "phonetisaurus-apply -m model.fst -wl test.wlist"
 ```
 
 You can also use the `bash` program to simply enter the interactive shell and run everything from there.
 
-### Misc: ###
-cpplint command:
-```
- $ ./cpplint.py --filter=-whitespace/parens,-whitespace/braces,\
-      -legal/copyright,-build/namespaces,-runtime/references\
-      src/include/util.h
-```
