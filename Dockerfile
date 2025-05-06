@@ -1,16 +1,16 @@
-FROM python:3 as build
+FROM python:3 AS build
 
 WORKDIR /build
 
 RUN apt-get -y update && apt-get -y install git g++ autoconf-archive make libtool gfortran tar gawk
 
-RUN wget http://www.openfst.org/twiki/pub/FST/FstDownload/openfst-1.6.2.tar.gz && \
-    tar -xvzf openfst-1.6.2.tar.gz && \
-    cd openfst-1.6.2 && \
-    ./configure --enable-static --enable-shared --enable-far --enable-ngram-fsts && \
-    make -j $(nproc) && \
-    make install && \
-    ldconfig
+RUN wget http://www.openfst.org/twiki/pub/FST/FstDownload/openfst-1.8.4.tar.gz && \
+	tar -xvzf openfst-1.8.4.tar.gz && \
+	cd openfst-1.8.4 && \
+	./configure --enable-static --enable-shared --enable-far --enable-ngram-fsts --enable-lookahead-fsts --with-pic && \
+	make -j $(nproc) && \
+	make install && \
+	ldconfig
 
 RUN git clone https://github.com/mitlm/mitlm && \
 	cd mitlm && \
@@ -23,15 +23,16 @@ WORKDIR /build/phonetisaurus
 
 COPY . ./
 
-RUN pip3 install pybindgen
+RUN pip3 install pybindgen setuptools
 
 RUN ./configure --enable-python && \
-    make -j $(nproc) && \
-    make install 
+	make -j $(nproc) && \
+	make install 
 
 FROM python:3-slim
 
-RUN apt-get -y update && apt-get -y install gfortran && apt-get -y clean && apt-get -y autoclean
+RUN apt-get -y update && apt-get -y install gfortran && apt-get -y clean && apt-get -y autoclean && \
+	pip3 install setuptools
 
 WORKDIR /setup
 
